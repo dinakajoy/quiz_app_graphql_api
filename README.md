@@ -27,7 +27,7 @@ Open [http://localhost:3000](http://localhost:3000) on your browser to see the r
 All quiz questions are fetched from a mongoDB database and can be accessed via graphql [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql). This endpoint can be edited in `pages/api/graphql.ts`.
 
 ## Live Demo
-[Quiz App](http://quiz-app-dinakajoy.vercel.app/)
+[Quiz App](https://quiz-app-graphql-api.vercel.app/)
 
 ## Author
 [Odinaka Joy](http://dinakajoy.com)
