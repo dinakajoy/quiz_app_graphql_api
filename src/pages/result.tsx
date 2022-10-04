@@ -1,7 +1,9 @@
 import Link from "next/link";
 import useSWR from "swr";
+import { request, RequestDocument, Variables } from 'graphql-request';
 import { TQuiz, TSavedAnswer } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 export default function Result() {
   const getAnswers: string =
@@ -9,15 +11,26 @@ export default function Result() {
 
   const answers: TSavedAnswer = JSON.parse(getAnswers);
 
-  const fetcher = (url: string) => fetch(url).then((res) => res.json());
-  const { data, error } = useSWR(`./api/quiz`, fetcher);
+  const fetcher = (query: RequestDocument | TypedDocumentNode<any, Variables>) => request('/api/graphql', query)
+
+  const { data, error } = useSWR(
+    `{
+      quiz {
+        _id
+        question
+        options
+        answer
+      }
+    }`,
+    fetcher
+  )
   if (error) return <div>Failed to load</div>;
   if (!data) return <div>Loading...</div>;
 
   let correctAnswers = 0;
-  if (data) {
-    data.map((quiz: TQuiz) => {
-      if (quiz.answer === answers[quiz.id]) {
+  if (data?.quiz) {
+    data.quiz.map((quiz: TQuiz) => {
+      if (quiz.answer === answers[quiz._id]) {
         correctAnswers = correctAnswers + 1;
       }
     });
@@ -36,21 +49,21 @@ export default function Result() {
       </h2>
       <br />
 
-      {data.map((quiz: TQuiz) => (
+      {data?.quiz && data.quiz.map((quiz: TQuiz) => (
         <>
-          <div key={quiz.id}>
+          <div key={quiz._id}>
             <p>{quiz.question}</p>
           </div>
           <ul className={styles.ul}>
             {quiz.options.map((option: string, i: number) => (
               <li className={styles.option} key={i}>
                 {option === quiz.answer ? (
-                  quiz.answer === answers[quiz.id] ? (
+                  quiz.answer === answers[quiz._id] ? (
                     <span>{option} &nbsp; ✅</span>
                   ) : (
                     <span>{option}</span>
                   )
-                ) : answers[quiz.id] === option ? (
+                ) : answers[quiz._id] === option ? (
                   <>
                     <s>{option}</s> &nbsp;❌
                   </>

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import useSWR from "swr";
+import { request, RequestDocument, Variables } from "graphql-request";
 import { TSavedAnswer } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 export default function Quiz() {
   const router = useRouter();
@@ -60,9 +60,23 @@ export default function Quiz() {
   const [pageIndex, setPageIndex] = useState(0);
   const [answered, setAnswered] = useState<TSavedAnswer>({});
 
-  const { data, error } = useSWR(`/api/quiz?page=${pageIndex}`, fetcher);
+  const GET_QUIZ = /* GraphQL */ `
+    query quizByIndex($idx: Int) {
+      quiz: quizPaginated(idx: $idx) {
+        _id
+        question
+        options
+        answer
+      }
+    }
+  `;
+
+  const { data, error } = useSWR([GET_QUIZ, pageIndex], (query, pageIndex) =>
+    request("/api/graphql", query, { idx: pageIndex })
+  );
 
   if (error) {
+    console.log("error", error);
     return (
       <div className={styles.info}>
         <h2>{timer}</h2>
@@ -79,7 +93,17 @@ export default function Quiz() {
       </div>
     );
   }
-  const { quiz, next, prev, page, total } = data;
+
+  const numOfQuestions = 20;
+  let prev = false;
+  let next = false;
+
+  if (data.quiz) {
+    prev = pageIndex !== 0;
+    next = pageIndex !== 19;
+  }
+
+  const { quiz } = data;
 
   const addAnswer = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -93,60 +117,60 @@ export default function Quiz() {
   }
 
   return (
-    <>
-      <div className={styles.info}>
-        <h2>{timer}</h2>
-        <p>
-          {parseInt(page) + 1} of {total}
-        </p>
-      </div>
-      <div>
-        <div key={quiz.id}>
-          <p>{quiz.question}</p>
+    data?.quiz && (
+      <>
+        <div className={styles.info}>
+          <h2>{timer}</h2>
+          <p>{pageIndex + 1} of 20</p>
         </div>
-        <ul>
-          {quiz.options.map((option: string, i: number) => (
-            <li className={styles.option} key={i}>
-              <input
-                type="radio"
-                name={quiz.id.toString()}
-                onChange={(e) => addAnswer(e)}
-                value={option}
-                checked={answered[quiz.id] === option}
-              />
-              {option}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className={styles.navBtns}>
-        {prev ? (
-          <button onClick={() => setPageIndex(pageIndex - 1)}>
-            Previous Question
-          </button>
-        ) : (
-          <Link href="/">
-            <a>Cancel</a>
-          </Link>
-        )}
-        {next ? (
-          <button
-            onClick={() => setPageIndex(pageIndex + 1)}
-            disabled={answered[quiz.id] === undefined}
-            className={
-              answered[quiz.id] === undefined ? "disabledBtn" : "activeBtn"
-            }
-          >
-            Next Question
-          </button>
-        ) : (
-          answered[quiz.id] !== undefined && (
-            <Link href="/result">
-              <a className={styles.finish}>Finish</a>
+        <div>
+          <div key={pageIndex}>
+            <p>{quiz.question}</p>
+          </div>
+          <ul>
+            {quiz.options.map((option: string, i: number) => (
+              <li className={styles.option} key={i}>
+                <input
+                  type="radio"
+                  name={quiz._id.toString()}
+                  onChange={(e) => addAnswer(e)}
+                  value={option}
+                  checked={answered[quiz._id] === option}
+                />
+                {option}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className={styles.navBtns}>
+          {prev ? (
+            <button onClick={() => setPageIndex(pageIndex - 1)}>
+              Previous Question
+            </button>
+          ) : (
+            <Link href="/">
+              <a>Cancel</a>
             </Link>
-          )
-        )}
-      </div>
-    </>
+          )}
+          {next ? (
+            <button
+              onClick={() => setPageIndex(pageIndex + 1)}
+              disabled={answered[quiz._id] === undefined}
+              className={
+                answered[quiz._id] === undefined ? "disabledBtn" : "activeBtn"
+              }
+            >
+              Next Question
+            </button>
+          ) : (
+            answered[quiz._id] !== undefined && (
+              <Link href="/result">
+                <a className={styles.finish}>Finish</a>
+              </Link>
+            )
+          )}
+        </div>
+      </>
+    )
   );
 }
