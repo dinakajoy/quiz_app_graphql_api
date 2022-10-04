@@ -1,11 +1,10 @@
 import Link from "next/link";
+import useSWR from "swr";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef, ChangeEvent } from "react";
-import useSWR from "swr";
-import { request, RequestDocument, Variables } from "graphql-request";
+import { request } from "graphql-request";
 import { TSavedAnswer } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
-import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 export default function Quiz() {
   const router = useRouter();
@@ -94,7 +93,6 @@ export default function Quiz() {
     );
   }
 
-  const numOfQuestions = 20;
   let prev = false;
   let next = false;
 
