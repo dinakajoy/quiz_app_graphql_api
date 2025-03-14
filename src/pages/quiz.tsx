@@ -77,8 +77,7 @@ export default function Quiz() {
     async ([query, idx]) => {
       try {
         const result = await request(API_URL, query, { idx });
-        console.log("Fetched data:", result);
-        return result as IQuizResponse; // Explicitly cast to expected type
+        return result as IQuizResponse;
       } catch (err) {
         console.error("GraphQL Error:", err);
         throw err;
@@ -87,7 +86,6 @@ export default function Quiz() {
   );
 
   if (error) {
-    console.log("error", error);
     return (
       <div className={styles.info}>
         <h2>{timer}</h2>
@@ -107,7 +105,6 @@ export default function Quiz() {
 
   let prev = false;
   let next = false;
-  console.log("data", data)
 
   if (data?.quiz) {
     prev = pageIndex !== 0;
