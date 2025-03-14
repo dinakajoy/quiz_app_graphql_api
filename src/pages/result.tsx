@@ -40,7 +40,7 @@ export default function Result() {
     <>
       <div className={styles.centered}>
         <Link href="/">
-          <a className={styles.startBtn}>Retake</a>
+          <span className={styles.startBtn}>Retake</span>
         </Link>
       </div>
       <h2>

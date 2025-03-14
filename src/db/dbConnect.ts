@@ -1,13 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+
+const MONGODB_URI = process.env.DATABASE_URL as string;
+
+if (!MONGODB_URI) {
+  throw new Error("Please define the DATABASE_URL environment variable");
+}
 
 const connectDB = async () => {
-  const dbURL = process.env.DATABASE_URL as string;
-  return mongoose.connect(dbURL).then(() => {
-    console.info('Database connected successfully');
-  }).catch((error: any) => {
-    console.error(error.message);
+  if (mongoose.connection.readyState >= 1) {
+    return; // Avoid multiple connections
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Database connected successfully");
+  } catch (error: any) {
+    console.error("Database connection error:", error.message);
     process.exit(1);
-  })
-}
+  }
+};
 
 export default connectDB;

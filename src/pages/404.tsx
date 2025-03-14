@@ -6,7 +6,7 @@ export default function Error() {
     <div className={styles.homeWrapper}>
       <p className={styles.description}>Not Found &nbsp; 👋</p>
       <Link href="/quiz">
-        <a className={styles.startBtn}>Go to Home Page</a>
+        <span className={styles.startBtn}>Go to Home Page</span>
       </Link>
     </div>
   )

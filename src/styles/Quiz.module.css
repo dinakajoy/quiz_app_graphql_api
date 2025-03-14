@@ -57,7 +57,15 @@
 }
 
 .option input {
+  cursor: pointer;
   margin-right: 10px;
+}
+
+.option label {
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ gap: 5px;
 }
 
 .ul {

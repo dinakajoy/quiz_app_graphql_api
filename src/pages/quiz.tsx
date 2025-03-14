@@ -70,9 +70,22 @@ export default function Quiz() {
     }
   `;
 
-  const { data, error } = useSWR([GET_QUIZ, pageIndex], (query, pageIndex) =>
-    request("/api/graphql", query, { idx: pageIndex })
-  );
+  // const { data, error } = useSWR([GET_QUIZ, pageIndex], (query, pageIndex) =>
+  //   request("/api/graphql", query, { idx: pageIndex })
+  // );
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/graphql";
+
+const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
+  try {
+    const result = await request(API_URL, query, { idx });
+    console.log("Fetched data:", result);
+    return result;
+  } catch (err) {
+    console.error("GraphQL Error:", err);
+    throw err;
+  }
+});
 
   if (error) {
     console.log("error", error);
@@ -92,6 +105,8 @@ export default function Quiz() {
       </div>
     );
   }
+
+  console.log('data =========', data)
 
   let prev = false;
   let next = false;
@@ -127,7 +142,18 @@ export default function Quiz() {
           </div>
           <ul>
             {quiz.options.map((option: string, i: number) => (
+              // <li className={styles.option} key={i}>
+              //   <input
+              //     type="radio"
+              //     name={quiz._id.toString()}
+              //     onChange={(e) => addAnswer(e)}
+              //     value={option}
+              //     checked={answered[quiz._id] === option}
+              //   />
+              //   {option}
+              // </li>
               <li className={styles.option} key={i}>
+              <label>
                 <input
                   type="radio"
                   name={quiz._id.toString()}
@@ -136,7 +162,8 @@ export default function Quiz() {
                   checked={answered[quiz._id] === option}
                 />
                 {option}
-              </li>
+              </label>
+            </li>
             ))}
           </ul>
         </div>
@@ -147,7 +174,7 @@ export default function Quiz() {
             </button>
           ) : (
             <Link href="/">
-              <a>Cancel</a>
+              Cancel
             </Link>
           )}
           {next ? (
