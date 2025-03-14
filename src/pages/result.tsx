@@ -1,34 +1,47 @@
 import Link from "next/link";
 import useSWR from "swr";
-import { request, RequestDocument, Variables } from 'graphql-request';
-import { TQuiz, TSavedAnswer } from "../types/quiz";
+import { request, gql } from 'graphql-request';
+import { TQuiz, TSavedAnswer, IQuizResponseArray } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
-import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 export default function Result() {
   const getAnswers: string =
-    typeof window !== "undefined" && localStorage.getItem("quiz") ||JSON.stringify({});
+    typeof window !== "undefined" && localStorage.getItem("quiz") || JSON.stringify({});
 
   const answers: TSavedAnswer = JSON.parse(getAnswers);
 
-  const fetcher = (query: RequestDocument | TypedDocumentNode<any, Variables>) => request('/api/graphql', query)
-
-  const { data, error } = useSWR(
-    `{
+  const QUERY = gql`
+    {
       quiz {
         _id
         question
         options
         answer
       }
-    }`,
-    fetcher
-  )
+    }
+  `;
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/graphql";
+  const { data, error } = useSWR<IQuizResponseArray>(
+    [QUERY],
+    async ([query]) => {
+      try {
+        const result = await request(API_URL, query);
+        return result as IQuizResponseArray;
+      } catch (err) {
+        console.error("GraphQL Error:", err);
+        throw err;
+      }
+    }
+  );
+
   if (error) return <div>Failed to load</div>;
   if (!data) return <div>Loading...</div>;
 
+  
+
   let correctAnswers = 0;
-  if (data?.quiz) {
+  if (data.quiz.length > 0) {
     data.quiz.map((quiz: TQuiz) => {
       if (quiz.answer === answers[quiz._id]) {
         correctAnswers = correctAnswers + 1;
@@ -39,17 +52,17 @@ export default function Result() {
   return (
     <>
       <div className={styles.centered}>
-        <Link href="/">
-          <span className={styles.startBtn}>Retake</span>
+        <Link href="/" className={styles.startBtn}>
+          Retake
         </Link>
       </div>
       <h2>
         You answered {correctAnswers} questions correctly. You{" "}
-        {correctAnswers > (data.length / 100) * 70 ? "Passed 😃" : "Failed 🥺"}{" "}
+        {correctAnswers > (data.quiz.length / 100) * 70 ? "Passed 😃" : "Failed 🥺"}{" "}
       </h2>
       <br />
 
-      {data?.quiz && data.quiz.map((quiz: TQuiz) => (
+      {data.quiz && data.quiz.map((quiz: TQuiz) => (
         <>
           <div key={quiz._id}>
             <p>{quiz.question}</p>

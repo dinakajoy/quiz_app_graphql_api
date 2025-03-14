@@ -6,14 +6,12 @@ export type TQuiz = {
 }
 
 export type TQuizResponse = {
-  data: {
-    prev: boolean,
-    next: boolean,
-    page: string,
-    quiz: TQuiz,
-    total: number
-  } | TQuiz[]
-}
+  prev: boolean,
+  next: boolean,
+  page: string,
+  quiz: TQuiz,
+  total: number
+} | TQuiz[]
 
 export type TSavedAnswer = {
   [key: string]: string
@@ -21,4 +19,8 @@ export type TSavedAnswer = {
 
 export type IQuizResponse = {
   quiz: TQuiz,
+}
+
+export type IQuizResponseArray = {
+  quiz: TQuiz[],
 }
