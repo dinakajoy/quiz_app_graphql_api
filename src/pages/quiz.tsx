@@ -70,10 +70,6 @@ export default function Quiz() {
     }
   `;
 
-  // const { data, error } = useSWR([GET_QUIZ, pageIndex], (query, pageIndex) =>
-  //   request("/api/graphql", query, { idx: pageIndex })
-  // );
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/graphql";
 
 const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
@@ -105,8 +101,6 @@ const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
       </div>
     );
   }
-
-  console.log('data =========', data)
 
   let prev = false;
   let next = false;
@@ -142,16 +136,6 @@ const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
           </div>
           <ul>
             {quiz.options.map((option: string, i: number) => (
-              // <li className={styles.option} key={i}>
-              //   <input
-              //     type="radio"
-              //     name={quiz._id.toString()}
-              //     onChange={(e) => addAnswer(e)}
-              //     value={option}
-              //     checked={answered[quiz._id] === option}
-              //   />
-              //   {option}
-              // </li>
               <li className={styles.option} key={i}>
               <label>
                 <input
