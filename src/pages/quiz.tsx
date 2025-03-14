@@ -3,12 +3,12 @@ import useSWR from "swr";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { request } from "graphql-request";
-import { TSavedAnswer } from "../types/quiz";
+import { IQuizResponse, TSavedAnswer } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
 
 export default function Quiz() {
   const router = useRouter();
-  const Ref = useRef<NodeJS.Timer | null>(null);
+  const Ref = useRef<ReturnType<typeof setInterval> | null>(null);
   const [timer, setTimer] = useState("00:10:00");
 
   const getTimeRemaining = (e: Date) => {
@@ -29,10 +29,10 @@ export default function Quiz() {
     if (total >= 0) {
       setTimer(
         (hours > 9 ? hours : "0" + hours) +
-          ":" +
-          (minutes > 9 ? minutes : "0" + minutes) +
-          ":" +
-          (seconds > 9 ? seconds : "0" + seconds)
+        ":" +
+        (minutes > 9 ? minutes : "0" + minutes) +
+        ":" +
+        (seconds > 9 ? seconds : "0" + seconds)
       );
     }
   };
@@ -72,16 +72,19 @@ export default function Quiz() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/graphql";
 
-const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
-  try {
-    const result = await request(API_URL, query, { idx });
-    console.log("Fetched data:", result);
-    return result;
-  } catch (err) {
-    console.error("GraphQL Error:", err);
-    throw err;
-  }
-});
+  const { data, error } = useSWR<IQuizResponse>(
+    [GET_QUIZ, pageIndex], 
+    async ([query, idx]) => {
+      try {
+        const result = await request(API_URL, query, { idx });
+        console.log("Fetched data:", result);
+        return result as IQuizResponse; // Explicitly cast to expected type
+      } catch (err) {
+        console.error("GraphQL Error:", err);
+        throw err;
+      }
+    }
+  );
 
   if (error) {
     console.log("error", error);
@@ -104,8 +107,9 @@ const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
 
   let prev = false;
   let next = false;
+  console.log("data", data)
 
-  if (data.quiz) {
+  if (data?.quiz) {
     prev = pageIndex !== 0;
     next = pageIndex !== 19;
   }
@@ -137,17 +141,17 @@ const { data, error } = useSWR([GET_QUIZ, pageIndex], async ([query, idx]) => {
           <ul>
             {quiz.options.map((option: string, i: number) => (
               <li className={styles.option} key={i}>
-              <label>
-                <input
-                  type="radio"
-                  name={quiz._id.toString()}
-                  onChange={(e) => addAnswer(e)}
-                  value={option}
-                  checked={answered[quiz._id] === option}
-                />
-                {option}
-              </label>
-            </li>
+                <label>
+                  <input
+                    type="radio"
+                    name={quiz._id.toString()}
+                    onChange={(e) => addAnswer(e)}
+                    value={option}
+                    checked={answered[quiz._id] === option}
+                  />
+                  {option}
+                </label>
+              </li>
             ))}
           </ul>
         </div>
