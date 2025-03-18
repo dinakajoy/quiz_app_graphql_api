@@ -1,10 +1,12 @@
 import Link from "next/link";
 import useSWR from "swr";
+import { useRouter } from "next/router";
 import { request, gql } from 'graphql-request';
 import { TQuiz, TSavedAnswer, IQuizResponseArray } from "../types/quiz";
 import styles from "../styles/Quiz.module.css";
 
 export default function Result() {
+  const router = useRouter();
   const getAnswers: string =
     typeof window !== "undefined" && localStorage.getItem("quiz") || JSON.stringify({});
 
@@ -38,7 +40,9 @@ export default function Result() {
   if (error) return <div>Failed to load</div>;
   if (!data) return <div>Loading...</div>;
 
-  
+  if (Object.keys(answers).length === 0 && answers.constructor === Object) {
+    router.push("/");
+  }
 
   let correctAnswers = 0;
   if (data.quiz.length > 0) {
@@ -58,7 +62,7 @@ export default function Result() {
       </div>
       <h2>
         You answered {correctAnswers} questions correctly. You{" "}
-        {correctAnswers > (data.quiz.length / 100) * 70 ? "Passed 😃" : "Failed 🥺"}{" "}
+        {correctAnswers > Number((data.quiz.length / 100) * 70) ? "Passed 😃" : "Failed 🥺"}{" "}
       </h2>
       <br />
 
